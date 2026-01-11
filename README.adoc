@@ -17,7 +17,7 @@ toc::[]
 
 == Overview
 
-FormDB Studio is a graphical interface that lets non-technical users create and query FormDB databases using FQLdt (dependently-typed Form Query Language) without needing to understand dependent types, proofs, or Lean 4.
+FormDB Studio is a graphical interface that lets non-technical users create and query FormDB databases using FQLdt (dependently-typed FormDB Query Language) without needing to understand dependent types, proofs, or Lean 4.
 
 === The Problem
 
