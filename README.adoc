@@ -289,6 +289,7 @@ formdb-studio/
 * https://github.com/hyperpolymath/fqldt/blob/main/spec/normalization-types.md[FQLdt Normalization Types] - Type-encoded functional dependencies and normal forms
 * https://github.com/hyperpolymath/bofig[BoFIG] - Evidence graph for investigative journalism
 * https://github.com/hyperpolymath/zotero-formdb[Zotero-FormDB] - Production pilot: reference manager with PROMPT scores
+* https://github.com/hyperpolymath/formdb-debugger[FormDB Debugger] - Proof-carrying database debugger (Lean 4 + Idris 2)
 
 == License
 
