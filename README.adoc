@@ -79,14 +79,17 @@ FormDB Studio provides a visual interface:
 │  FormDB Studio (This Project)                               │
 │  ├── Tauri 2.0 (Rust) - Cross-platform desktop app          │
 │  ├── ReScript UI - Type-safe reactive interface             │
-│  └── Visual builders for schemas, queries, data entry       │
+│  └── Visual builders for schemas, queries, data entry,      │
+│      and schema normalization                               │
 ├─────────────────────────────────────────────────────────────┤
 │  FQLdt (github.com/hyperpolymath/fqldt)                     │
 │  ├── Lean 4 type checker                                    │
-│  ├── Proof generation                                       │
+│  ├── Proof generation (incl. normalization proofs)          │
+│  ├── Normalization types (FunDep, 1NF-BCNF)                 │
 │  └── FQL code generation                                    │
 ├─────────────────────────────────────────────────────────────┤
 │  FormDB (github.com/hyperpolymath/formdb)                   │
+│  ├── Form.Normalizer (Factor + Lean 4) - FD discovery       │
 │  ├── Form.Bridge (Zig) - Bidirectional ABI                  │
 │  ├── Form.Model (Forth) - Multi-model layer                 │
 │  └── Form.Blocks (Forth) - Storage + journal                │
@@ -130,6 +133,18 @@ When manual proofs are needed:
 * Suggested fixes
 * One-click proof tactics
 * "I don't know" option with guidance
+
+=== Schema Normalization
+
+Self-normalizing database features:
+
+* Automatic functional dependency discovery from data
+* Visual normal form analysis (1NF through BCNF)
+* One-click normalization proposals with narrative explanations
+* Proof-carrying schema evolution with rollback
+* "What's wrong with my schema?" in plain English
+
+See https://github.com/hyperpolymath/formdb/blob/main/spec/self-normalizing.adoc[FormDB Self-Normalizing Spec] and https://github.com/hyperpolymath/fqldt/blob/main/spec/normalization-types.md[FQLdt Normalization Types].
 
 == Target Users
 
@@ -258,10 +273,20 @@ formdb-studio/
 * [ ] Multi-user collaboration
 * [ ] Export to standard formats
 
+=== Phase 5: Schema Normalization
+
+* [ ] Functional dependency discovery UI
+* [ ] Normal form visualization (1NF-BCNF)
+* [ ] One-click normalization proposals
+* [ ] Schema evolution with rollback
+* [ ] FQLdt proof integration for schema changes
+
 == Related Projects
 
 * https://github.com/hyperpolymath/formdb[FormDB] - The narrative-first database
+* https://github.com/hyperpolymath/formdb/blob/main/spec/self-normalizing.adoc[FormDB Self-Normalizing] - Automatic FD discovery and proof-carrying schema evolution
 * https://github.com/hyperpolymath/fqldt[FQLdt] - Dependently-typed Form Query Language
+* https://github.com/hyperpolymath/fqldt/blob/main/spec/normalization-types.md[FQLdt Normalization Types] - Type-encoded functional dependencies and normal forms
 * https://github.com/hyperpolymath/bofig[BoFIG] - Binary-Origami Figuration (journalism use case)
 
 == License
