@@ -7,7 +7,7 @@
     (version "0.1.0")
     (schema-version "1.0")
     (created "2025-01-11")
-    (updated "2026-01-12T21:30:00Z")
+    (updated "2026-01-12T22:00:00Z")
     (project "formbd-studio")
     (repo "https://github.com/hyperpolymath/formbd-studio"))
 
@@ -221,4 +221,13 @@
         "Renamed FqldtPreview.res -> FbqldtPreview.res"
         "Verified ReScript and Rust builds pass"
         "Committed and pushed rebrand (commit: 3526112)"
-        "GitHub repo still named formdb-studio (manual rename pending)"))))
+        "GitHub repo still named formdb-studio (manual rename pending)"))
+    (snapshot "2026-01-12T22:00:00Z"
+      (accomplishments
+        "Fixed all ReScript deprecation warnings (24 total)"
+        "Updated Js.Dict.* -> Dict.*, Js.Global.setTimeout -> setTimeout"
+        "Updated Float.toFixedWithPrecision -> Float.toFixed"
+        "Updated Exn.Error/message -> JsExn/JsExn.message"
+        "Build now compiles warning-free"
+        "Verified app launch with cargo tauri dev"
+        "Pushed all fixes to GitHub (commits: f389b90)"))))
