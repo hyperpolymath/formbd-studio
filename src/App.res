@@ -112,11 +112,59 @@ module Navigation = {
   }
 }
 
+// LocalStorage helpers for persistence
+module Storage = {
+  let collectionsKey = "formbd_studio_collections"
+
+  let saveCollections = (collections: array<Collection.t>): unit => {
+    let json = collections->Array.map(c => {
+      {
+        "name": c.name,
+        "fields": c.fields->Array.map(f => {
+          {
+            "name": f.name,
+            "fieldType": f.fieldType->FieldType.toString,
+          }
+        }),
+      }
+    })
+    let _ = json  // Ensure json is captured for the raw JS block
+    let _: unit = %raw(`localStorage.setItem(collectionsKey, JSON.stringify(json))`)
+  }
+
+  let loadCollections = (): array<Collection.t> => {
+    let result: option<array<Collection.t>> = %raw(`(function() {
+      try {
+        var raw = localStorage.getItem(collectionsKey);
+        if (!raw) return null;
+        var data = JSON.parse(raw);
+        return data.map(function(c) {
+          return {
+            name: c.name,
+            fields: c.fields.map(function(f) {
+              return {
+                name: f.name,
+                fieldType: f.fieldType === "Number" ? { TAG: "Number", _0: { min: null, max: null } }
+                         : f.fieldType === "Text" ? { TAG: "Text", _0: { required: false } }
+                         : f.fieldType === "Confidence" ? "Confidence"
+                         : "PromptScores"
+              };
+            })
+          };
+        });
+      } catch (e) {
+        return null;
+      }
+    })()`)
+    result->Option.getOr([])
+  }
+}
+
 // Main App component
 @react.component
 let make = () => {
   let (activeTab, setActiveTab) = React.useState(() => Schema)
-  let (collections, setCollections) = React.useState(() => [])
+  let (collections, setCollections) = React.useState(() => Storage.loadCollections())
   let (currentCollection, setCurrentCollection) = React.useState(() => Collection.empty())
   let (validationState, setValidationState) = React.useState(() => Types.NotValidated)
   let (serviceStatus, setServiceStatus) = React.useState(() => None)
@@ -129,6 +177,39 @@ let make = () => {
     })->ignore
     None
   })
+
+  // Keyboard navigation (Ctrl+1-5 for tabs)
+  React.useEffect1(() => {
+    let setTab = setActiveTab
+    let _ = setTab  // Ensure setTab is captured for the raw JS block
+    let cleanup: unit => unit = %raw(`function() {
+      var handler = function(evt) {
+        if (evt.ctrlKey || evt.metaKey) {
+          var tab = null;
+          switch (evt.key) {
+            case "1": tab = "Schema"; break;
+            case "2": tab = "Query"; break;
+            case "3": tab = "DataEntry"; break;
+            case "4": tab = "ProofAssistant"; break;
+            case "5": tab = "Normalization"; break;
+          }
+          if (tab) {
+            evt.preventDefault();
+            setTab(function(_) { return tab; });
+          }
+        }
+      };
+      document.addEventListener("keydown", handler);
+      return function() { document.removeEventListener("keydown", handler); };
+    }()`)
+    Some(cleanup)
+  }, [setActiveTab])
+
+  // Save collections to localStorage when they change
+  React.useEffect1(() => {
+    Storage.saveCollections(collections)
+    None
+  }, [collections])
 
   // Schema builder handlers
   let handleUpdateName = name => {
