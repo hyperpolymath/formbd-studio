@@ -6,12 +6,24 @@ module FieldType = Types.FieldType
 module Field = Types.Field
 module Collection = Types.Collection
 module Tauri = Types.Tauri
+module ServiceStatus = Types.ServiceStatus
+module AppInfo = Types.AppInfo
 
 // Validation result from Rust backend
 type validationResult = {
   valid: bool,
   errors: array<string>,
   proofs_generated: array<string>,
+}
+
+// Check service status from Tauri backend
+let checkServiceStatus = async (): option<ServiceStatus.t> => {
+  try {
+    let result = await Tauri.invoke("check_service_status", ())
+    Some(result)
+  } catch {
+  | _ => None
+  }
 }
 
 // Generate FQLdt from collection definition
@@ -107,6 +119,16 @@ let make = () => {
   let (collections, setCollections) = React.useState(() => [])
   let (currentCollection, setCurrentCollection) = React.useState(() => Collection.empty())
   let (validationState, setValidationState) = React.useState(() => Types.NotValidated)
+  let (serviceStatus, setServiceStatus) = React.useState(() => None)
+
+  // Check service status on mount
+  React.useEffect0(() => {
+    let _ = checkServiceStatus()->Promise.then(status => {
+      setServiceStatus(_ => status)
+      Promise.resolve()
+    })->ignore
+    None
+  })
 
   // Schema builder handlers
   let handleUpdateName = name => {
@@ -208,17 +230,6 @@ let make = () => {
       }}
     </main>
 
-    <footer>
-      <p>
-        {React.string("FormDB Studio v0.1.0 | ")}
-        <a href="https://github.com/hyperpolymath/formdb" target="_blank">
-          {React.string("FormDB")}
-        </a>
-        {React.string(" | ")}
-        <a href="https://github.com/hyperpolymath/fqldt" target="_blank">
-          {React.string("FQLdt")}
-        </a>
-      </p>
-    </footer>
+    <StatusBar status={serviceStatus} />
   </div>
 }

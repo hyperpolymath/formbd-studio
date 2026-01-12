@@ -50,3 +50,42 @@ type validationState =
   | Validating
   | Valid(array<string>)
   | Invalid(array<string>)
+
+// Service status types
+module ServiceStatus = {
+  type serviceInfo = {
+    name: string,
+    available: bool,
+    version: option<string>,
+    message: string,
+    blocking_milestone: option<string>,
+  }
+
+  type featureAvailability = {
+    schema_builder: bool,
+    fqldt_generation: bool,
+    fqldt_validation: bool,
+    query_execution: bool,
+    data_entry: bool,
+    normalization: bool,
+    proof_assistant: bool,
+  }
+
+  type t = {
+    formdb: serviceInfo,
+    fqldt: serviceInfo,
+    overall_ready: bool,
+    features: featureAvailability,
+  }
+}
+
+// App info type
+module AppInfo = {
+  type t = {
+    name: string,
+    version: string,
+    description: string,
+    license: string,
+    repository: string,
+  }
+}

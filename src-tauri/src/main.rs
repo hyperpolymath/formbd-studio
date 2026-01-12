@@ -8,6 +8,41 @@
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
+// Service Status Types
+// ============================================================================
+
+/// Status of external service dependencies
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceStatus {
+    pub formdb: ServiceInfo,
+    pub fqldt: ServiceInfo,
+    pub overall_ready: bool,
+    pub features: FeatureAvailability,
+}
+
+/// Information about a specific service
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceInfo {
+    pub name: String,
+    pub available: bool,
+    pub version: Option<String>,
+    pub message: String,
+    pub blocking_milestone: Option<String>,
+}
+
+/// Which features are currently available
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeatureAvailability {
+    pub schema_builder: bool,
+    pub fqldt_generation: bool,
+    pub fqldt_validation: bool,
+    pub query_execution: bool,
+    pub data_entry: bool,
+    pub normalization: bool,
+    pub proof_assistant: bool,
+}
+
+// ============================================================================
 // Schema Types
 // ============================================================================
 
@@ -357,12 +392,108 @@ fn apply_tactic(_obligation_id: String, _tactic: String) -> Result<bool, String>
 }
 
 // ============================================================================
+// Tauri Commands - Service Status
+// ============================================================================
+
+/// Check availability of backend services
+#[tauri::command]
+fn check_service_status() -> ServiceStatus {
+    // Check FormDB availability
+    let formdb = check_formdb_status();
+
+    // Check FQLdt availability
+    let fqldt = check_fqldt_status();
+
+    // Determine which features are available
+    let features = FeatureAvailability {
+        // Schema builder works offline (generates FQLdt code locally)
+        schema_builder: true,
+        // FQLdt code generation works offline
+        fqldt_generation: true,
+        // Validation requires FQLdt/Lean 4
+        fqldt_validation: fqldt.available,
+        // Query execution requires FormDB
+        query_execution: formdb.available,
+        // Data entry requires FormDB
+        data_entry: formdb.available,
+        // Normalization requires FormDB
+        normalization: formdb.available,
+        // Proof assistant requires FQLdt
+        proof_assistant: fqldt.available,
+    };
+
+    let overall_ready = formdb.available && fqldt.available;
+
+    ServiceStatus {
+        formdb,
+        fqldt,
+        overall_ready,
+        features,
+    }
+}
+
+/// Check FormDB HTTP API availability
+fn check_formdb_status() -> ServiceInfo {
+    // TODO: Actually ping FormDB when M11 is released
+    // For now, return unavailable with informative message
+    ServiceInfo {
+        name: "FormDB".to_string(),
+        available: false,
+        version: None,
+        message: "FormDB HTTP API not yet available. \
+                  Query execution, data entry, and normalization features \
+                  will be enabled when FormDB M11 is released.".to_string(),
+        blocking_milestone: Some("FormDB M11".to_string()),
+    }
+}
+
+/// Check FQLdt/Lean 4 availability
+fn check_fqldt_status() -> ServiceInfo {
+    // TODO: Check for Lean 4 binary and FQLdt package
+    // For now, return unavailable with informative message
+    ServiceInfo {
+        name: "FQLdt (Lean 4)".to_string(),
+        available: false,
+        version: None,
+        message: "FQLdt type checker not yet integrated. \
+                  Type validation and proof generation will be enabled \
+                  when FQLdt M5 (Zig FFI) is released.".to_string(),
+        blocking_milestone: Some("FQLdt M5".to_string()),
+    }
+}
+
+/// Get app version and build info
+#[tauri::command]
+fn get_app_info() -> AppInfo {
+    AppInfo {
+        name: "FormDB Studio".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+        description: "Zero-friction interface for FormDB with dependently-typed FQL".to_string(),
+        license: "AGPL-3.0-or-later".to_string(),
+        repository: "https://github.com/hyperpolymath/formdb-studio".to_string(),
+    }
+}
+
+/// Application information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppInfo {
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub license: String,
+    pub repository: String,
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            // Service status
+            check_service_status,
+            get_app_info,
             // Schema
             generate_fqldt,
             validate_fqldt,
